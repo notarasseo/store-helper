@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Form, Input, Button, Card, Typography, message } from 'antd';
+import { Form, Input, Button, Typography, message } from 'antd';
 import { UserOutlined, MailOutlined, LockOutlined } from '@ant-design/icons';
 import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
@@ -34,16 +34,36 @@ export default function RegisterPage() {
         display: 'flex',
         alignItems: 'center',
         justifyContent: 'center',
-        background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+        background: 'linear-gradient(135deg, #5b8dee 0%, #4a7de0 55%, #3a6dd4 100%)',
         overflowY: 'auto',
       }}
     >
-      <Card style={{ width: 400, boxShadow: '0 8px 32px rgba(0,0,0,0.12)' }}>
-        <div style={{ textAlign: 'center', marginBottom: 32 }}>
-          <Title level={2} style={{ color: '#5b8dee', margin: 0 }}>
+      {/* Decorative circles */}
+      <div style={{
+        position: 'fixed', top: -80, left: -80,
+        width: 320, height: 320, borderRadius: '50%',
+        background: 'rgba(255,255,255,0.08)', pointerEvents: 'none',
+      }} />
+      <div style={{
+        position: 'fixed', bottom: -100, right: -60,
+        width: 420, height: 420, borderRadius: '50%',
+        background: 'rgba(255,255,255,0.06)', pointerEvents: 'none',
+      }} />
+
+      <div
+        style={{
+          width: 420,
+          background: 'rgba(255,255,255,0.97)',
+          borderRadius: 20,
+          padding: '48px 40px 36px',
+          boxShadow: '0 24px 60px rgba(0,0,0,0.2)',
+        }}
+      >
+        <div style={{ textAlign: 'center', marginBottom: 36 }}>
+          <Title level={2} style={{ margin: 0, color: '#1a1a1a', fontWeight: 700 }}>
             StoreHelper
           </Title>
-          <Text type="secondary">Create your account</Text>
+          <Text style={{ color: '#888', fontSize: 14 }}>Create your account</Text>
         </div>
 
         <Form form={form} onFinish={onFinish} layout="vertical" size="large">
@@ -51,7 +71,11 @@ export default function RegisterPage() {
             name="name"
             rules={[{ required: true, message: 'Please enter your name' }]}
           >
-            <Input prefix={<UserOutlined />} placeholder="Full Name" />
+            <Input
+              prefix={<UserOutlined style={{ color: '#5b8dee' }} />}
+              placeholder="Full Name"
+              style={{ borderRadius: 10, height: 48 }}
+            />
           </Form.Item>
 
           <Form.Item
@@ -61,7 +85,11 @@ export default function RegisterPage() {
               { type: 'email', message: 'Invalid email' },
             ]}
           >
-            <Input prefix={<MailOutlined />} placeholder="Email" />
+            <Input
+              prefix={<MailOutlined style={{ color: '#5b8dee' }} />}
+              placeholder="Email address"
+              style={{ borderRadius: 10, height: 48 }}
+            />
           </Form.Item>
 
           <Form.Item
@@ -71,7 +99,11 @@ export default function RegisterPage() {
               { min: 6, message: 'Minimum 6 characters' },
             ]}
           >
-            <Input.Password prefix={<LockOutlined />} placeholder="Password" />
+            <Input.Password
+              prefix={<LockOutlined style={{ color: '#5b8dee' }} />}
+              placeholder="Password"
+              style={{ borderRadius: 10, height: 48 }}
+            />
           </Form.Item>
 
           <Form.Item
@@ -87,21 +119,41 @@ export default function RegisterPage() {
               }),
             ]}
           >
-            <Input.Password prefix={<LockOutlined />} placeholder="Confirm Password" />
+            <Input.Password
+              prefix={<LockOutlined style={{ color: '#5b8dee' }} />}
+              placeholder="Confirm Password"
+              style={{ borderRadius: 10, height: 48 }}
+            />
           </Form.Item>
 
-          <Form.Item>
-            <Button type="primary" htmlType="submit" loading={loading} block>
+          <Form.Item style={{ marginTop: 8 }}>
+            <Button
+              htmlType="submit"
+              loading={loading}
+              block
+              style={{
+                height: 50,
+                borderRadius: 10,
+                background: 'linear-gradient(135deg, #5b8dee, #3a6dd4)',
+                border: 'none',
+                color: '#fff',
+                fontSize: 16,
+                fontWeight: 600,
+                boxShadow: '0 6px 20px rgba(58,109,212,0.35)',
+              }}
+            >
               Create Account
             </Button>
           </Form.Item>
         </Form>
 
-        <div style={{ textAlign: 'center' }}>
-          <Text type="secondary">Already have an account? </Text>
-          <Link to="/login">Sign in</Link>
+        <div style={{ textAlign: 'center', marginTop: 8 }}>
+          <Text style={{ color: '#888' }}>Already have an account? </Text>
+          <Link to="/login" style={{ color: '#5b8dee', fontWeight: 600 }}>
+            Sign in
+          </Link>
         </div>
-      </Card>
+      </div>
     </div>
   );
 }
