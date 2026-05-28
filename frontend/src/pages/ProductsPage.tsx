@@ -49,11 +49,12 @@ export default function ProductsPage() {
       setLoading(true);
       const params: Record<string, unknown> = { page: p, limit: 20, search: s, sortBy: sb, sortOrder: so };
       if (cat) params.category = cat;
-      api
+      return api
         .get('/products', { params })
         .then((res) => {
           setProducts(res.data.products);
           setTotal(res.data.total);
+          return res.data.total as number;
         })
         .finally(() => setLoading(false));
     },
@@ -61,7 +62,10 @@ export default function ProductsPage() {
   );
 
   useEffect(() => {
-    fetchProducts(1, search, categoryFilter, sortBy, sortOrder);
+    const isLowStock = searchParams.get('lowStock') === 'true';
+    fetchProducts(1, search, categoryFilter, sortBy, sortOrder).then((total: number) => {
+      if (isLowStock && total === 0) message.info('No products are low on stock.');
+    });
     api.get('/categories', { params: { limit: 200 } }).then((res) => setCategories(res.data.categories));
   }, [fetchProducts]);
 
