@@ -1,4 +1,5 @@
 import { useEffect, useState, useCallback, KeyboardEvent } from 'react';
+import { useSearchParams } from 'react-router-dom';
 
 const allowDecimal = (e: KeyboardEvent<HTMLInputElement>) => {
   if (!/[\d.]/.test(e.key) && !['Backspace','Delete','ArrowLeft','ArrowRight','Tab'].includes(e.key))
@@ -38,8 +39,9 @@ export default function ProductsPage() {
   const [categoryFilter, setCategoryFilter] = useState<string | undefined>(undefined);
   const [page, setPage] = useState(1);
   const [total, setTotal] = useState(0);
-  const [sortBy, setSortBy] = useState('createdAt');
-  const [sortOrder, setSortOrder] = useState('desc');
+  const [searchParams] = useSearchParams();
+  const [sortBy, setSortBy] = useState(() => searchParams.get('lowStock') === 'true' ? 'stock' : 'createdAt');
+  const [sortOrder, setSortOrder] = useState(() => searchParams.get('lowStock') === 'true' ? 'asc' : 'desc');
   const [form] = Form.useForm();
 
   const fetchProducts = useCallback(
@@ -59,7 +61,7 @@ export default function ProductsPage() {
   );
 
   useEffect(() => {
-    fetchProducts(1, search, categoryFilter);
+    fetchProducts(1, search, categoryFilter, sortBy, sortOrder);
     api.get('/categories', { params: { limit: 200 } }).then((res) => setCategories(res.data.categories));
   }, [fetchProducts]);
 

@@ -96,7 +96,8 @@ export default function DashboardPage() {
           <Col xs={24} sm={12} lg={6} key={key}>
             <Card
               hoverable
-              style={{ borderTop: `3px solid ${color}`, borderRadius: 8 }}
+              style={{ borderTop: `3px solid ${color}`, borderRadius: 8, cursor: key === 'lowStockProducts' ? 'pointer' : 'default' }}
+              onClick={key === 'lowStockProducts' ? () => navigate('/products?lowStock=true') : undefined}
             >
               <Statistic
                 title={label}
