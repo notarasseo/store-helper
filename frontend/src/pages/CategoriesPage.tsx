@@ -20,20 +20,22 @@ export default function CategoriesPage() {
   const [search, setSearch] = useState('');
   const [page, setPage] = useState(1);
   const [total, setTotal] = useState(0);
+  const [sortBy, setSortBy] = useState('name');
+  const [sortOrder, setSortOrder] = useState('asc');
   const [modalOpen, setModalOpen] = useState(false);
   const [editing, setEditing] = useState<Category | null>(null);
   const [form] = Form.useForm();
 
-  const fetchCategories = useCallback((p = page, s = search) => {
+  const fetchCategories = useCallback((p = page, s = search, sb = sortBy, so = sortOrder) => {
     setLoading(true);
     api
-      .get('/categories', { params: { page: p, limit: 20, search: s } })
+      .get('/categories', { params: { page: p, limit: 20, search: s, sortBy: sb, sortOrder: so } })
       .then((res) => {
         setCategories(res.data.categories);
         setTotal(res.data.total);
       })
       .finally(() => setLoading(false));
-  }, [page, search]);
+  }, [page, search, sortBy, sortOrder]);
 
   useEffect(() => { fetchCategories(); }, [fetchCategories]);
 
@@ -67,7 +69,7 @@ export default function CategoriesPage() {
   };
 
   const columns = [
-    { title: 'Name', dataIndex: 'name', key: 'name' },
+    { title: 'Name', dataIndex: 'name', key: 'name', sorter: true },
     { title: 'Description', dataIndex: 'description', key: 'description' },
     {
       title: 'Actions',
@@ -113,6 +115,15 @@ export default function CategoriesPage() {
         dataSource={categories}
         rowKey="_id"
         loading={loading}
+        showSorterTooltip={false}
+        onChange={(_pagination, _filters, sorter: any) => {
+          const sb = sorter.field ?? 'name';
+          const so = sorter.order === 'ascend' ? 'asc' : 'desc';
+          setSortBy(sb);
+          setSortOrder(so);
+          setPage(1);
+          fetchCategories(1, search, sb, so);
+        }}
         pagination={{
           current: page,
           total,

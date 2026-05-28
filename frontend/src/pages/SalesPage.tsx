@@ -30,12 +30,14 @@ export default function SalesPage() {
   const [page, setPage] = useState(1);
   const [total, setTotal] = useState(0);
   const [dateRange, setDateRange] = useState<[string, string] | null>(null);
+  const [sortBy, setSortBy] = useState('createdAt');
+  const [sortOrder, setSortOrder] = useState('desc');
   const [form] = Form.useForm();
   const [saleItems, setSaleItems] = useState([{ product: '', quantity: 1 }]);
 
-  const fetchSales = (p = page, range = dateRange) => {
+  const fetchSales = (p = page, range = dateRange, sb = sortBy, so = sortOrder) => {
     setLoading(true);
-    const params: Record<string, unknown> = { page: p, limit: 20 };
+    const params: Record<string, unknown> = { page: p, limit: 20, sortBy: sb, sortOrder: so };
     if (range) { params.from = range[0]; params.to = range[1]; }
     api
       .get('/sales', { params })
@@ -126,17 +128,24 @@ export default function SalesPage() {
     {
       title: 'Date',
       dataIndex: 'createdAt',
+      key: 'createdAt',
+      sorter: true,
+      defaultSortOrder: 'descend' as const,
       render: (v: string) => dayjs(v).format('MMM D, YYYY h:mm A'),
     },
     { title: 'Items', key: 'items', render: (_: unknown, r: Sale) => r.items.length },
     {
       title: 'Revenue',
       dataIndex: 'totalAmount',
+      key: 'totalAmount',
+      sorter: true,
       render: (v: number) => <Typography.Text strong>₱{v.toFixed(2)}</Typography.Text>,
     },
     {
       title: 'Profit',
       dataIndex: 'profit',
+      key: 'profit',
+      sorter: true,
       render: (v: number) => (
         <Tag color={v >= 0 ? 'green' : 'red'}>₱{v.toFixed(2)}</Tag>
       ),
@@ -209,7 +218,16 @@ export default function SalesPage() {
         dataSource={sales}
         rowKey="_id"
         loading={loading}
+        showSorterTooltip={false}
         expandable={{ expandedRowRender }}
+        onChange={(_pagination, _filters, sorter: any) => {
+          const sb = sorter.field ?? 'createdAt';
+          const so = sorter.order === 'ascend' ? 'asc' : 'desc';
+          setSortBy(sb);
+          setSortOrder(so);
+          setPage(1);
+          fetchSales(1, dateRange, sb, so);
+        }}
         pagination={{
           current: page,
           total,

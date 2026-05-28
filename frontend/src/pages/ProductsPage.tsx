@@ -38,12 +38,14 @@ export default function ProductsPage() {
   const [categoryFilter, setCategoryFilter] = useState<string | undefined>(undefined);
   const [page, setPage] = useState(1);
   const [total, setTotal] = useState(0);
+  const [sortBy, setSortBy] = useState('createdAt');
+  const [sortOrder, setSortOrder] = useState('desc');
   const [form] = Form.useForm();
 
   const fetchProducts = useCallback(
-    (p: number, s: string, cat: string | undefined) => {
+    (p: number, s: string, cat: string | undefined, sb = sortBy, so = sortOrder) => {
       setLoading(true);
-      const params: Record<string, unknown> = { page: p, limit: 20, search: s };
+      const params: Record<string, unknown> = { page: p, limit: 20, search: s, sortBy: sb, sortOrder: so };
       if (cat) params.category = cat;
       api
         .get('/products', { params })
@@ -53,7 +55,7 @@ export default function ProductsPage() {
         })
         .finally(() => setLoading(false));
     },
-    []
+    [sortBy, sortOrder]
   );
 
   useEffect(() => {
@@ -102,6 +104,7 @@ export default function ProductsPage() {
       title: 'Name',
       dataIndex: 'name',
       key: 'name',
+      sorter: true,
       render: (name: string, record: Product) => (
         <Space>
           {name}
@@ -109,7 +112,7 @@ export default function ProductsPage() {
         </Space>
       ),
     },
-    { title: 'SKU', dataIndex: 'sku', key: 'sku' },
+    { title: 'SKU', dataIndex: 'sku', key: 'sku', sorter: true },
     {
       title: 'Category',
       key: 'category',
@@ -119,18 +122,21 @@ export default function ProductsPage() {
       title: 'Price',
       dataIndex: 'price',
       key: 'price',
+      sorter: true,
       render: (v: number) => `₱${v.toFixed(2)}`,
     },
     {
       title: 'Cost',
       dataIndex: 'costPrice',
       key: 'costPrice',
+      sorter: true,
       render: (v: number) => `₱${v.toFixed(2)}`,
     },
     {
       title: 'Stock',
       dataIndex: 'stock',
       key: 'stock',
+      sorter: true,
       render: (v: number, r: Product) => (
         <Typography.Text type={r.isLowStock ? 'danger' : undefined}>{v}</Typography.Text>
       ),
@@ -192,6 +198,15 @@ export default function ProductsPage() {
         dataSource={products}
         rowKey="_id"
         loading={loading}
+        showSorterTooltip={false}
+        onChange={(_pagination, _filters, sorter: any) => {
+          const sb = sorter.field ?? 'createdAt';
+          const so = sorter.order === 'ascend' ? 'asc' : sorter.order === 'descend' ? 'desc' : 'desc';
+          setSortBy(sb);
+          setSortOrder(so);
+          setPage(1);
+          fetchProducts(1, search, categoryFilter, sb, so);
+        }}
         pagination={{
           current: page,
           total,

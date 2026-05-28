@@ -6,18 +6,19 @@ router.use(auth);
 
 router.get('/', async (req, res) => {
   try {
-    const { page = 1, limit = 20, search = '', category } = req.query;
+    const { page = 1, limit = 20, search = '', category, sortBy = 'createdAt', sortOrder = 'desc' } = req.query;
     const filter = { user: req.userId };
     if (search) filter.$or = [
       { name: { $regex: search, $options: 'i' } },
       { sku: { $regex: search, $options: 'i' } },
     ];
     if (category) filter.category = category;
+    const sort = { [sortBy]: sortOrder === 'asc' ? 1 : -1 };
 
     const [products, total] = await Promise.all([
       Product.find(filter)
         .populate('category', 'name')
-        .sort({ createdAt: -1 })
+        .sort(sort)
         .skip((page - 1) * limit)
         .limit(Number(limit)),
       Product.countDocuments(filter),

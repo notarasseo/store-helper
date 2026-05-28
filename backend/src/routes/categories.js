@@ -6,16 +6,17 @@ router.use(auth);
 
 router.get('/', async (req, res) => {
   try {
-    const { search = '', page = 1, limit = 20 } = req.query;
+    const { search = '', page = 1, limit = 20, sortBy = 'name', sortOrder = 'asc' } = req.query;
     const filter = { user: req.userId };
     if (search) filter.$or = [
       { name: { $regex: search, $options: 'i' } },
       { description: { $regex: search, $options: 'i' } },
     ];
+    const sort = { [sortBy]: sortOrder === 'asc' ? 1 : -1 };
 
     const [categories, total] = await Promise.all([
       Category.find(filter)
-        .sort({ name: 1 })
+        .sort(sort)
         .skip((page - 1) * limit)
         .limit(Number(limit)),
       Category.countDocuments(filter),

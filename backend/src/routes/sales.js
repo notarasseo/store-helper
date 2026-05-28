@@ -7,17 +7,18 @@ router.use(auth);
 
 router.get('/', async (req, res) => {
   try {
-    const { page = 1, limit = 20, from, to } = req.query;
+    const { page = 1, limit = 20, from, to, sortBy = 'createdAt', sortOrder = 'desc' } = req.query;
     const filter = { createdBy: req.userId };
     if (from || to) {
       filter.createdAt = {};
       if (from) filter.createdAt.$gte = new Date(from);
       if (to) filter.createdAt.$lte = new Date(to);
     }
+    const sort = { [sortBy]: sortOrder === 'asc' ? 1 : -1 };
 
     const [sales, total] = await Promise.all([
       Sale.find(filter)
-        .sort({ createdAt: -1 })
+        .sort(sort)
         .skip((page - 1) * limit)
         .limit(Number(limit)),
       Sale.countDocuments(filter),
