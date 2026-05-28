@@ -20,10 +20,27 @@ app.use('/api/categories', categoryRoutes);
 app.use('/api/sales', saleRoutes);
 app.use('/api/dashboard', dashboardRoutes);
 
+async function dropLegacyIndexes() {
+  const db = mongoose.connection.db;
+  const drops = [
+    { col: 'categories', idx: 'name_1' },
+    { col: 'products', idx: 'sku_1' },
+  ];
+  for (const { col, idx } of drops) {
+    try {
+      await db.collection(col).dropIndex(idx);
+      console.log(`Dropped legacy index ${idx} from ${col}`);
+    } catch {
+      // Index doesn't exist — nothing to do
+    }
+  }
+}
+
 mongoose
   .connect(process.env.MONGO_URI)
-  .then(() => {
+  .then(async () => {
     console.log('MongoDB connected');
+    await dropLegacyIndexes();
     app.listen(process.env.PORT || 5000, () =>
       console.log(`Server running on port ${process.env.PORT || 5000}`)
     );
