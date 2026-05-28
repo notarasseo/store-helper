@@ -44,11 +44,14 @@ export default function ProductsPage() {
   const [sortOrder, setSortOrder] = useState(() => searchParams.get('lowStock') === 'true' ? 'asc' : 'desc');
   const [form] = Form.useForm();
 
+  const isLowStockView = searchParams.get('lowStock') === 'true';
+
   const fetchProducts = useCallback(
     (p: number, s: string, cat: string | undefined, sb = sortBy, so = sortOrder) => {
       setLoading(true);
       const params: Record<string, unknown> = { page: p, limit: 20, search: s, sortBy: sb, sortOrder: so };
       if (cat) params.category = cat;
+      if (isLowStockView) params.lowStock = 'true';
       return api
         .get('/products', { params })
         .then((res) => {
@@ -58,7 +61,7 @@ export default function ProductsPage() {
         })
         .finally(() => setLoading(false));
     },
-    [sortBy, sortOrder]
+    [sortBy, sortOrder, isLowStockView]
   );
 
   useEffect(() => {

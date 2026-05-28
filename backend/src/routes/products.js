@@ -6,15 +6,34 @@ router.use(auth);
 
 router.get('/', async (req, res) => {
   try {
-    const { page = 1, limit = 20, search = '', category, sortBy = 'createdAt', sortOrder = 'desc' } = req.query;
-    const filter = { user: req.userId };
+    const { page = 1, limit = 20, search = '', category, sortBy = 'createdAt', sortOrder = 'desc', lowStock } = req.query;
+    const mongoose = require('mongoose');
+    const filter = { user: new mongoose.Types.ObjectId(req.userId) };
     if (search) filter.$or = [
       { name: { $regex: search, $options: 'i' } },
       { sku: { $regex: search, $options: 'i' } },
     ];
-    if (category) filter.category = category;
-    const sort = { [sortBy]: sortOrder === 'asc' ? 1 : -1 };
+    if (category) filter.category = new mongoose.Types.ObjectId(category);
 
+    if (lowStock === 'true') {
+      const pipeline = [
+        { $match: filter },
+        { $lookup: { from: 'categories', localField: 'category', foreignField: '_id', as: 'category' } },
+        { $unwind: { path: '$category', preserveNullAndEmpty: true } },
+        { $addFields: { isLowStock: { $lte: ['$stock', '$lowStockThreshold'] } } },
+        { $sort: { isLowStock: -1, stock: 1 } },
+        { $facet: {
+          data: [{ $skip: (page - 1) * Number(limit) }, { $limit: Number(limit) }],
+          total: [{ $count: 'count' }],
+        }},
+      ];
+      const [result] = await Product.aggregate(pipeline);
+      const products = result.data.map((p) => ({ ...p, id: p._id }));
+      const total = result.total[0]?.count ?? 0;
+      return res.json({ products, total, page: Number(page), pages: Math.ceil(total / Number(limit)) });
+    }
+
+    const sort = { [sortBy]: sortOrder === 'asc' ? 1 : -1 };
     const [products, total] = await Promise.all([
       Product.find(filter)
         .populate('category', 'name')
