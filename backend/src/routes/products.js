@@ -16,20 +16,20 @@ router.get('/', async (req, res) => {
     if (category) filter.category = new mongoose.Types.ObjectId(category);
 
     if (lowStock === 'true') {
-      const pipeline = [
-        { $match: filter },
-        { $lookup: { from: 'categories', localField: 'category', foreignField: '_id', as: 'category' } },
-        { $unwind: { path: '$category', preserveNullAndEmpty: true } },
-        { $addFields: { isLowStock: { $lte: ['$stock', '$lowStockThreshold'] } } },
-        { $sort: { isLowStock: -1, stock: 1 } },
-        { $facet: {
-          data: [{ $skip: (page - 1) * Number(limit) }, { $limit: Number(limit) }],
-          total: [{ $count: 'count' }],
-        }},
-      ];
-      const [result] = await Product.aggregate(pipeline);
-      const products = result.data.map((p) => ({ ...p, id: p._id }));
-      const total = result.total[0]?.count ?? 0;
+      const skip = (Number(page) - 1) * Number(limit);
+      const [products, total] = await Promise.all([
+        Product.aggregate([
+          { $match: filter },
+          { $addFields: { isLowStock: { $lte: ['$stock', '$lowStockThreshold'] } } },
+          { $sort: { isLowStock: -1, stock: 1 } },
+          { $skip: skip },
+          { $limit: Number(limit) },
+          { $lookup: { from: 'categories', localField: 'category', foreignField: '_id', as: 'categoryArr' } },
+          { $addFields: { category: { $arrayElemAt: ['$categoryArr', 0] } } },
+          { $project: { categoryArr: 0 } },
+        ]),
+        Product.countDocuments(filter),
+      ]);
       return res.json({ products, total, page: Number(page), pages: Math.ceil(total / Number(limit)) });
     }
 
