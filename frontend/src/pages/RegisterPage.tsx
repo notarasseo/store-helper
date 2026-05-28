@@ -29,11 +29,13 @@ export default function RegisterPage() {
   return (
     <div
       style={{
-        minHeight: '100vh',
+        position: 'fixed',
+        inset: 0,
         display: 'flex',
         alignItems: 'center',
         justifyContent: 'center',
         background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+        overflowY: 'auto',
       }}
     >
       <Card style={{ width: 400, boxShadow: '0 8px 32px rgba(0,0,0,0.12)' }}>
