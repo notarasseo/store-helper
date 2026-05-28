@@ -265,7 +265,7 @@ export default function SalesPage() {
                     options={products.map((p) => ({
                       value: p._id,
                       label: `${p.name} (Stock: ${p.stock})`,
-                      disabled: p.stock === 0,
+                      disabled: p.stock === 0 || saleItems.some((s, si) => si !== index && s.product === p._id),
                     }))}
                     showSearch
                     filterOption={(input, option) =>

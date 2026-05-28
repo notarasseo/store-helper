@@ -29,12 +29,13 @@ export default function LoginPage() {
   return (
     <div
       style={{
-        minHeight: '100vh',
+        position: 'fixed',
+        inset: 0,
         display: 'flex',
         alignItems: 'center',
         justifyContent: 'center',
         background: 'linear-gradient(135deg, #5b8dee 0%, #4a7de0 55%, #3a6dd4 100%)',
-        padding: 24,
+        overflowY: 'auto',
       }}
     >
       {/* Decorative circles */}
