@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { Form, Input, Button, Typography, message } from 'antd';
-import { MailOutlined, LockOutlined } from '@ant-design/icons';
+import { MailOutlined, LockOutlined, LinkedinOutlined } from '@ant-design/icons';
 import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import api from '../services/api';
@@ -118,6 +118,21 @@ export default function LoginPage() {
           <Link to="/register" style={{ color: '#5b8dee', fontWeight: 600 }}>
             Sign up
           </Link>
+        </div>
+
+        <div style={{ borderTop: '1px solid #f0f0f0', marginTop: 28, paddingTop: 20, textAlign: 'center' }}>
+          <Text style={{ display: 'block', fontSize: 12, color: '#aaa', marginBottom: 4 }}>
+            Built by
+          </Text>
+          <Text strong style={{ fontSize: 13, color: '#555' }}>Renz Joshua Dela Rosa</Text>
+          <div style={{ display: 'flex', justifyContent: 'center', gap: 16, marginTop: 10 }}>
+            <a href="mailto:delarosaernz@gmail.com" style={{ color: '#5b8dee', fontSize: 13, display: 'flex', alignItems: 'center', gap: 4 }}>
+              <MailOutlined /> delarosaernz@gmail.com
+            </a>
+            <a href="https://www.linkedin.com/in/renz-joshua-dela-rosa-459680190" target="_blank" rel="noreferrer" style={{ color: '#5b8dee', fontSize: 13, display: 'flex', alignItems: 'center', gap: 4 }}>
+              <LinkedinOutlined /> LinkedIn
+            </a>
+          </div>
         </div>
       </div>
     </div>

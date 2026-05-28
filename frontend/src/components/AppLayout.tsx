@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Layout, Menu, Avatar, Dropdown, Typography, Button } from 'antd';
+import { Layout, Menu, Avatar, Dropdown, Typography, Button, Tooltip } from 'antd';
 import {
   DashboardOutlined,
   ShoppingOutlined,
@@ -10,6 +10,8 @@ import {
   MenuFoldOutlined,
   MenuUnfoldOutlined,
   ShopOutlined,
+  MailOutlined,
+  LinkedinOutlined,
 } from '@ant-design/icons';
 import { useNavigate, useLocation, Outlet } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
@@ -80,6 +82,42 @@ export default function AppLayout() {
           onClick={({ key }) => navigate(key)}
           style={{ border: 'none', marginTop: 8 }}
         />
+
+        {/* About */}
+        <div
+          style={{
+            position: 'absolute',
+            bottom: 0,
+            width: '100%',
+            borderTop: '1px solid #f0f0f0',
+            padding: collapsed ? '12px 0' : '12px 16px',
+            display: 'flex',
+            flexDirection: 'column',
+            alignItems: collapsed ? 'center' : 'flex-start',
+            gap: 6,
+          }}
+        >
+          {!collapsed && (
+            <Text style={{ fontSize: 11, color: '#aaa', textTransform: 'uppercase', letterSpacing: 1 }}>
+              Developer
+            </Text>
+          )}
+          {!collapsed && (
+            <Text strong style={{ fontSize: 13, color: '#333' }}>Renz Joshua Dela Rosa</Text>
+          )}
+          <div style={{ display: 'flex', gap: 8 }}>
+            <Tooltip title="delarosaernz@gmail.com">
+              <a href="mailto:delarosaernz@gmail.com" style={{ color: PRIMARY, fontSize: 16 }}>
+                <MailOutlined />
+              </a>
+            </Tooltip>
+            <Tooltip title="LinkedIn">
+              <a href="https://www.linkedin.com/in/renz-joshua-dela-rosa-459680190" target="_blank" rel="noreferrer" style={{ color: PRIMARY, fontSize: 16 }}>
+                <LinkedinOutlined />
+              </a>
+            </Tooltip>
+          </div>
+        </div>
       </Sider>
 
       <Layout>
