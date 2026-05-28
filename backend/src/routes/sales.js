@@ -88,12 +88,21 @@ router.patch('/:id/status', async (req, res) => {
     const { status } = req.body;
     if (!['Valid', 'Void'].includes(status))
       return res.status(400).json({ message: 'Invalid status' });
-    const sale = await Sale.findOneAndUpdate(
-      { _id: req.params.id, createdBy: req.userId },
-      { status },
-      { new: true }
-    );
+
+    const sale = await Sale.findOne({ _id: req.params.id, createdBy: req.userId });
     if (!sale) return res.status(404).json({ message: 'Sale not found' });
+    if (sale.status === status) return res.json(sale);
+
+    // Restore stock when voiding, deduct when re-validating
+    const stockDelta = status === 'Void' ? 1 : -1;
+    await Promise.all(
+      sale.items.map((item) =>
+        Product.findByIdAndUpdate(item.product, { $inc: { stock: stockDelta * item.quantity } })
+      )
+    );
+
+    sale.status = status;
+    await sale.save();
     res.json(sale);
   } catch (err) {
     res.status(500).json({ message: err.message });
