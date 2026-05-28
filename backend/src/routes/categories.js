@@ -7,12 +7,11 @@ router.use(auth);
 router.get('/', async (req, res) => {
   try {
     const { search = '', page = 1, limit = 20 } = req.query;
-    const filter = search
-      ? { $or: [
-          { name: { $regex: search, $options: 'i' } },
-          { description: { $regex: search, $options: 'i' } },
-        ] }
-      : {};
+    const filter = { user: req.userId };
+    if (search) filter.$or = [
+      { name: { $regex: search, $options: 'i' } },
+      { description: { $regex: search, $options: 'i' } },
+    ];
 
     const [categories, total] = await Promise.all([
       Category.find(filter)
@@ -30,7 +29,7 @@ router.get('/', async (req, res) => {
 
 router.post('/', async (req, res) => {
   try {
-    const category = await Category.create(req.body);
+    const category = await Category.create({ ...req.body, user: req.userId });
     res.status(201).json(category);
   } catch (err) {
     res.status(400).json({ message: err.message });
@@ -39,7 +38,11 @@ router.post('/', async (req, res) => {
 
 router.put('/:id', async (req, res) => {
   try {
-    const category = await Category.findByIdAndUpdate(req.params.id, req.body, { new: true });
+    const category = await Category.findOneAndUpdate(
+      { _id: req.params.id, user: req.userId },
+      req.body,
+      { new: true }
+    );
     if (!category) return res.status(404).json({ message: 'Category not found' });
     res.json(category);
   } catch (err) {
@@ -49,7 +52,7 @@ router.put('/:id', async (req, res) => {
 
 router.delete('/:id', async (req, res) => {
   try {
-    await Category.findByIdAndDelete(req.params.id);
+    await Category.findOneAndDelete({ _id: req.params.id, user: req.userId });
     res.json({ message: 'Deleted' });
   } catch (err) {
     res.status(500).json({ message: err.message });

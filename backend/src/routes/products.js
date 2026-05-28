@@ -7,7 +7,7 @@ router.use(auth);
 router.get('/', async (req, res) => {
   try {
     const { page = 1, limit = 20, search = '', category } = req.query;
-    const filter = {};
+    const filter = { user: req.userId };
     if (search) filter.$or = [
       { name: { $regex: search, $options: 'i' } },
       { sku: { $regex: search, $options: 'i' } },
@@ -32,6 +32,7 @@ router.get('/', async (req, res) => {
 router.get('/low-stock', async (req, res) => {
   try {
     const products = await Product.find({
+      user: req.userId,
       $expr: { $lte: ['$stock', '$lowStockThreshold'] },
     }).populate('category', 'name');
     res.json(products);
@@ -42,7 +43,7 @@ router.get('/low-stock', async (req, res) => {
 
 router.post('/', async (req, res) => {
   try {
-    const product = await Product.create(req.body);
+    const product = await Product.create({ ...req.body, user: req.userId });
     res.status(201).json(product);
   } catch (err) {
     res.status(400).json({ message: err.message });
@@ -51,10 +52,11 @@ router.post('/', async (req, res) => {
 
 router.put('/:id', async (req, res) => {
   try {
-    const product = await Product.findByIdAndUpdate(req.params.id, req.body, {
-      new: true,
-      runValidators: true,
-    }).populate('category', 'name');
+    const product = await Product.findOneAndUpdate(
+      { _id: req.params.id, user: req.userId },
+      req.body,
+      { new: true, runValidators: true }
+    ).populate('category', 'name');
     if (!product) return res.status(404).json({ message: 'Product not found' });
     res.json(product);
   } catch (err) {
@@ -64,7 +66,7 @@ router.put('/:id', async (req, res) => {
 
 router.delete('/:id', async (req, res) => {
   try {
-    await Product.findByIdAndDelete(req.params.id);
+    await Product.findOneAndDelete({ _id: req.params.id, user: req.userId });
     res.json({ message: 'Deleted' });
   } catch (err) {
     res.status(500).json({ message: err.message });

@@ -8,7 +8,7 @@ router.use(auth);
 router.get('/', async (req, res) => {
   try {
     const { page = 1, limit = 20, from, to } = req.query;
-    const filter = {};
+    const filter = { createdBy: req.userId };
     if (from || to) {
       filter.createdAt = {};
       if (from) filter.createdAt.$gte = new Date(from);
@@ -35,12 +35,10 @@ router.post('/', async (req, res) => {
     if (!items || items.length === 0)
       return res.status(400).json({ message: 'Sale must have at least one item' });
 
-    // Fetch all products involved
     const productIds = items.map((i) => i.product);
-    const products = await Product.find({ _id: { $in: productIds } });
+    const products = await Product.find({ _id: { $in: productIds }, user: req.userId });
     const productMap = Object.fromEntries(products.map((p) => [p._id.toString(), p]));
 
-    // Validate stock availability
     for (const item of items) {
       const product = productMap[item.product];
       if (!product) return res.status(404).json({ message: `Product not found: ${item.product}` });
@@ -48,7 +46,6 @@ router.post('/', async (req, res) => {
         return res.status(400).json({ message: `Insufficient stock for: ${product.name}` });
     }
 
-    // Build sale items and compute totals
     let totalAmount = 0;
     let totalCost = 0;
     const saleItems = items.map((item) => {
@@ -73,7 +70,6 @@ router.post('/', async (req, res) => {
       createdBy: req.userId,
     });
 
-    // Deduct stock atomically
     await Promise.all(
       items.map((item) =>
         Product.findByIdAndUpdate(item.product, { $inc: { stock: -Number(item.quantity) } })
@@ -91,7 +87,11 @@ router.patch('/:id/status', async (req, res) => {
     const { status } = req.body;
     if (!['Valid', 'Void'].includes(status))
       return res.status(400).json({ message: 'Invalid status' });
-    const sale = await Sale.findByIdAndUpdate(req.params.id, { status }, { new: true });
+    const sale = await Sale.findOneAndUpdate(
+      { _id: req.params.id, createdBy: req.userId },
+      { status },
+      { new: true }
+    );
     if (!sale) return res.status(404).json({ message: 'Sale not found' });
     res.json(sale);
   } catch (err) {
@@ -101,8 +101,8 @@ router.patch('/:id/status', async (req, res) => {
 
 router.patch('/:id/note', async (req, res) => {
   try {
-    const sale = await Sale.findByIdAndUpdate(
-      req.params.id,
+    const sale = await Sale.findOneAndUpdate(
+      { _id: req.params.id, createdBy: req.userId },
       { note: req.body.note },
       { new: true }
     );
