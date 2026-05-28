@@ -21,6 +21,11 @@ function PublicRoute({ children }: { children: React.ReactNode }) {
   return token ? <Navigate to="/dashboard" replace /> : <>{children}</>;
 }
 
+function AppLayoutKeyed() {
+  const { user } = useAuth();
+  return <AppLayout key={user?.id ?? 'guest'} />;
+}
+
 function AppRoutes() {
   return (
     <Routes>
@@ -30,7 +35,7 @@ function AppRoutes() {
         path="/"
         element={
           <PrivateRoute>
-            <AppLayout />
+            <AppLayoutKeyed />
           </PrivateRoute>
         }
       >
